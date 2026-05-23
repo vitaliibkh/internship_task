@@ -1,0 +1,15 @@
+{
+  "Client": [
+    { "PropertyName": "Id", "Type": "Integer", "StartIndex": 0, "Length": 4 },
+    { "PropertyName": "FirstName", "Type": "String", "StartIndex": 4, "Length": 20 },
+    { "PropertyName": "LastName", "Type": "String", "StartIndex": 24, "Length": 20 },
+    { "PropertyName": "DOB", "Type": "Date", "StartIndex": 44, "Length": 8 }
+  ],
+
+  "Account": [
+    { "PropertyName": "Id", "Type": "Long", "StartIndex": 0, "Length": 11 },
+    { "PropertyName": "CurrentBalance", "Type": "Money", "StartIndex": 11, "Length": 10 },
+    { "PropertyName": "LastTransaction", "Type": "DateTime", "StartIndex": 21, "Length": 14 },
+    { "PropertyName": "CustomerId", "Type": "Integer", "StartIndex": 35, "Length": 4 }
+  ]
+}
