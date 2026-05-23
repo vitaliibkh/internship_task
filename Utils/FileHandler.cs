@@ -28,7 +28,7 @@ public class FileHandler(string inputFolder, string outputFolder, string errorLo
                 save(batch);
                 success = true;
             } catch (Exception ex) {
-                File.AppendAllText("Errors.txt", $"{file.Name} | Batch write | Error: {ex.Message}\n");
+                File.AppendAllText(errorLogFile, $"{file.Name} | Batch write | Error: {ex.Message}\n");
             } finally {
                 batch.Clear();
             }
