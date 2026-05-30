@@ -1,3 +1,5 @@
+using System.Transactions;
+
 namespace project.Utils;
 
 public class FileHandler(string inputFolder, string outputFolder, string errorLogFile, int batchSize) {
@@ -19,24 +21,11 @@ public class FileHandler(string inputFolder, string outputFolder, string errorLo
             Directory.CreateDirectory(outputFolder);
         }
 
-        var batch = new List<TEntity>();
-
-        bool TrySave(in List<TEntity> batch) {
-            bool success = false;
-
-            try {
-                save(batch);
-                success = true;
-            } catch (Exception ex) {
-                File.AppendAllText(errorLogFile, $"{file.Name} | Batch write | Error: {ex.Message}\n");
-            } finally {
-                batch.Clear();
-            }
-
-            return success;
-        }
-
         int lineNumber = 0;
+        bool saveBatchError = false;
+        var batch = new List<TEntity>();
+        using var transactionScope = new TransactionScope();
+
         foreach (string line in File.ReadLines(file.FullName)) {
             lineNumber++;
 
@@ -47,20 +36,40 @@ public class FileHandler(string inputFolder, string outputFolder, string errorLo
                 continue;
             }
 
-            if (batch.Count == batchSize && !TrySave(batch)) {
+            if (batch.Count == batchSize && !TrySaveBatch(batch, save, file.Name)) {
+                saveBatchError = true;
                 break;
             }
         }
 
-        if (batch.Count > 0) {
-            TrySave(batch);
+        if (!saveBatchError && batch.Count > 0 && !TrySaveBatch(batch, save, file.Name)) {
+            saveBatchError = true;
         }
 
-        string destination = Path.Combine(outputFolder, file.Name);
-        if (File.Exists(destination)) {
-            File.Delete(destination);
+        if (!saveBatchError) {
+            transactionScope.Complete();
+
+            string destination = Path.Combine(outputFolder, file.Name);
+            if (File.Exists(destination)) {
+                File.Delete(destination);
+            }
+
+            file.MoveTo(destination);
+        }
+    }
+
+    private bool TrySaveBatch<TEntity>(List<TEntity> batch, Action<List<TEntity>> save, string fileName) {
+        bool success = false;
+
+        try {
+            save(batch);
+            success = true;
+        } catch (Exception ex) {
+            File.AppendAllText(errorLogFile, $"{fileName} | Batch write | Error: {ex.Message}\n");
+        } finally {
+            batch.Clear();
         }
 
-        file.MoveTo(destination);
+        return success;
     }
 }

@@ -5,13 +5,13 @@ using project.Models;
 namespace project.Utils;
 
 public class Parser(List<FieldConfig> configs) {
-    public List<FieldConfig> Configs { get; set; } = configs;
+    private readonly List<FieldConfig> _configs = configs;
 
     public T Parse<T>(string line) where T : new() {
         T entity = new();
         Type type = typeof(T);
 
-        foreach (var field in Configs) {
+        foreach (var field in _configs) {
             if (line.Length < field.StartIndex + field.Length) {
                 throw new Exception("invalid row length");
             }
